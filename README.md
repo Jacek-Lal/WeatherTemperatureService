@@ -1,12 +1,12 @@
 # Weather Temperature Service
 
-An AWS Lambda function that returns the current temperature and temperature category for Wrocław, built with Java and the Open-Meteo API.
+An AWS Lambda function that returns the current temperature and temperature category for a given city, built with Java and the Open-Meteo API.
 
 ---
 
 ## Solution Description
 
-The function fetches the current temperature in Wrocław from the Open-Meteo API, classifies it into a category, and returns the result as JSON.
+The function fetches coordinates by city name, then current temperature based on those coordinates from the Open-Meteo API, classifies it into a category, and returns the result as JSON.
 
 **Example response:**
 ```json
@@ -41,10 +41,11 @@ Each class has a single, clearly defined role:
 
 ### Interface-Based Design
 
-`OpenMeteoClient` implements the `WeatherProvider` interface rather than being used directly by `WeatherService`. This means:
+`OpenMeteoClient` implements `WeatherProvider` and `GeocodingProvider` interfaces rather than being used directly by `WeatherService`. This means:
 
 - `WeatherService` depends on an abstraction, not a concrete class
 - Swapping to a different weather provider requires no changes to existing classes
+- Different weather provider class don't have to implement `GeocodingProvider` functionality if it doesn't need to
 - Dependencies can be replaced with test doubles during unit testing
 
 ### Constructor Injection
@@ -71,20 +72,29 @@ assertEquals(15.0, response.temperature());
 
 ### OpenMeteoClient
 
-`OpenMeteoClient` owns the HTTP communication, so it cannot be meaningfully tested with a fake. Instead, [WireMock](https://wiremock.org/) can be used to spin up a real local HTTP server that the client talks to. This verifies URL construction, JSON parsing, and error handling without any network calls:
+`OpenMeteoClient` owns the HTTP communication, so it cannot be meaningfully tested with a fake. Instead, [WireMock](https://wiremock.org/) can be used to spin up a real local HTTP server that the client talks to. This verifies URL construction, JSON parsing, and error handling without any real network calls.
+
+The client accepts separate base URLs for the forecast and geocoding APIs, so both can be pointed at the same WireMock server in tests:
 
 ```java
+OpenMeteoClient client = new OpenMeteoClient("http://localhost:8080", "http://localhost:8080");
+ 
+stubFor(get(urlPathEqualTo("/v1/search"))
+    .willReturn(aResponse()
+        .withHeader("Content-Type", "application/json")
+        .withBody("{ \"results\": [{ \"latitude\": 51.1, \"longitude\": 17.03 }] }")));
+ 
 stubFor(get(urlPathEqualTo("/v1/forecast"))
     .willReturn(aResponse()
         .withHeader("Content-Type", "application/json")
         .withBody("{ \"current\": { \"temperature_2m\": 15.0 } }")));
-
-OpenMeteoClient client = new OpenMeteoClient("http://localhost:8080");
-double temp = client.getCurrentTemperature(new Coordinates(51.1, 17.03));
-
+ 
+Coordinates coords = client.getCoordinates("Wrocław");
+double temp = client.getCurrentTemperature(coords);
+ 
+assertEquals(51.1, coords.latitude());
 assertEquals(15.0, temp);
 ```
-
 ### WeatherHandler
 
 The handler can be tested by injecting a fake `WeatherService` through the constructor, verifying that it reads the city from the request and returns whatever the service provides:

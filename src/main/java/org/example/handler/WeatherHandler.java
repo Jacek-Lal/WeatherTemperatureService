@@ -13,7 +13,7 @@ public class WeatherHandler implements RequestHandler<WeatherRequest, WeatherRes
 
     public WeatherHandler() {
         OpenMeteoClient client = new OpenMeteoClient();
-        this.weatherService = new WeatherService(client);
+        this.weatherService = new WeatherService(client, client);
     }
 
     public WeatherHandler(WeatherService weatherService) {
@@ -22,6 +22,6 @@ public class WeatherHandler implements RequestHandler<WeatherRequest, WeatherRes
 
     @Override
     public WeatherResponse handleRequest(WeatherRequest request, Context context) {
-       return weatherService.getWeather("Wrocław");
+       return weatherService.getWeather(request.city());
     }
 }

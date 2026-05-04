@@ -3,18 +3,21 @@ package org.example.service;
 import org.example.model.Category;
 import org.example.model.Coordinates;
 import org.example.model.WeatherResponse;
+import org.example.provider.GeocodingProvider;
 import org.example.provider.WeatherProvider;
 
 public class WeatherService {
 
     private final WeatherProvider weatherProvider;
+    private final GeocodingProvider geocodingProvider;
 
-    public WeatherService(WeatherProvider weatherClient) {
+    public WeatherService(WeatherProvider weatherClient, GeocodingProvider geocodingClient) {
         this.weatherProvider = weatherClient;
+        this.geocodingProvider = geocodingClient;
     }
 
     public WeatherResponse getWeather(String city) {
-        Coordinates coordinates = new Coordinates(51.1, 17.03); // coordinates for Wrocław
+        Coordinates coordinates = geocodingProvider.getCoordinates(city);
         double temperature = weatherProvider.getCurrentTemperature(coordinates);
         Category category = this.categorizeTemperature(temperature);
 
