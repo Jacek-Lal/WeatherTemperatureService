@@ -22,6 +22,10 @@ public class WeatherHandler implements RequestHandler<WeatherRequest, WeatherRes
 
     @Override
     public WeatherResponse handleRequest(WeatherRequest request, Context context) {
-       return weatherService.getWeather(request.city());
+        String city = request.queryStringParameters() != null
+                ? request.queryStringParameters().get("city")
+                : "Wrocław";
+
+       return weatherService.getWeather(city);
     }
 }

@@ -1,3 +1,5 @@
 package org.example.model;
 
-public record WeatherRequest(String city) { }
+import java.util.Map;
+
+public record WeatherRequest(Map<String, String> queryStringParameters) { }

@@ -28,7 +28,32 @@ The function fetches coordinates by city name, then current temperature based on
 | Above 30°C | Hot |
 
 ---
+## HTTP Access via Function URL
 
+The Lambda is exposed via a Function URL and can be invoked directly over HTTP. Pass the city name as the `city` query parameter.
+
+**Base URL:**
+```
+https://42jrrka2xjpiniqgmghd2oyv2e0luiet.lambda-url.eu-north-1.on.aws
+```
+
+**Query parameter:** `city`
+
+**Example request:**
+
+```
+GET https://42jrrka2xjpiniqgmghd2oyv2e0luiet.lambda-url.eu-north-1.on.aws/?city=Berlin
+```
+
+**Example response:**
+```json
+{
+  "city": "Berlin",
+  "temperature": 18.3,
+  "category": "Mild"
+}
+```
+---
 ## Key Design Decisions
 
 ### Separation of Responsibilities
