@@ -133,3 +133,14 @@ WeatherResponse response = handler.handleRequest(new WeatherRequest("Wrocław"),
 assertEquals("Wrocław", response.city());
 assertEquals("Mild", response.category());
 ```
+
+## Design Reflection
+
+The current design supports adding a new weather provider with minimal changes, assuming it uses coordinate-based requests.
+WeatherService depends on the WeatherProvider and GeocodingProvider interfaces rather than any concrete implementation, 
+so a new provider would only require writing a class that implements those interfaces. However, if a provider accepts 
+a city name directly instead of coordinates, the current design would need refactoring.
+
+Given more time, I would look into making the design flexible enough to support city-based provider APIs.
+I would also make the active provider configurable via a Lambda environment variable rather than hardcoded in the constructor,
+which would allow switching providers without redeployment. I would also add a proper unit and integration test suite using JUnit and WireMock.
